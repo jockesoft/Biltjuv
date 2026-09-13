@@ -117,4 +117,95 @@ public sealed class GameDataRepositoryTests
         var reloaded = await db.UserGameData.AsNoTracking().SingleAsync(x => x.UserId == userId);
         reloaded.Health.Should().Be(42);
     }
+
+    // ---- RegenerateHealthAsync ------------------------------------------------
+
+    [Test]
+    public async Task RegenerateHealthAsync_Should_RestoreHealth_ForPlayersBelowMax()
+    {
+        var userId = Guid.NewGuid();
+        await SeedUserAsync(userId);
+        await using var db = new AppDbContext(_dbOptions);
+        var sut = new GameDataRepository(db);
+        var data = await sut.GetOrCreateAsync(userId);
+        data.Health = 50;
+        await sut.SaveAsync();
+
+        var affected = await sut.RegenerateHealthAsync(amount: 10, maxHealth: 100);
+
+        affected.Should().Be(1);
+        var reloaded = await db.UserGameData.AsNoTracking().SingleAsync(x => x.UserId == userId);
+        reloaded.Health.Should().Be(60);
+    }
+
+    [Test]
+    public async Task RegenerateHealthAsync_Should_CapAtMaxHealth_NotOvershoot()
+    {
+        var userId = Guid.NewGuid();
+        await SeedUserAsync(userId);
+        await using var db = new AppDbContext(_dbOptions);
+        var sut = new GameDataRepository(db);
+        var data = await sut.GetOrCreateAsync(userId);
+        data.Health = 95;
+        await sut.SaveAsync();
+
+        await sut.RegenerateHealthAsync(amount: 10, maxHealth: 100);
+
+        var reloaded = await db.UserGameData.AsNoTracking().SingleAsync(x => x.UserId == userId);
+        reloaded.Health.Should().Be(100, "regen must never push health above the cap");
+    }
+
+    [Test]
+    public async Task RegenerateHealthAsync_Should_SkipPlayers_AlreadyAtMaxHealth()
+    {
+        var userId = Guid.NewGuid();
+        await SeedUserAsync(userId);
+        await using var db = new AppDbContext(_dbOptions);
+        var sut = new GameDataRepository(db);
+        await sut.GetOrCreateAsync(userId); // starts at 100
+
+        var affected = await sut.RegenerateHealthAsync(amount: 10, maxHealth: 100);
+
+        affected.Should().Be(0);
+    }
+
+    [Test]
+    public async Task RegenerateHealthAsync_Should_OnlyAffectPlayersBelowMax_AmongMany()
+    {
+        var full = Guid.NewGuid();
+        var hurt = Guid.NewGuid();
+        await SeedUserAsync(full);
+        await SeedUserAsync(hurt);
+        await using var db = new AppDbContext(_dbOptions);
+        var sut = new GameDataRepository(db);
+        await sut.GetOrCreateAsync(full); // starts at 100
+        var hurtData = await sut.GetOrCreateAsync(hurt);
+        hurtData.Health = 30;
+        await sut.SaveAsync();
+
+        var affected = await sut.RegenerateHealthAsync(amount: 10, maxHealth: 100);
+
+        affected.Should().Be(1);
+        (await db.UserGameData.AsNoTracking().SingleAsync(x => x.UserId == full)).Health.Should().Be(100);
+        (await db.UserGameData.AsNoTracking().SingleAsync(x => x.UserId == hurt)).Health.Should().Be(40);
+    }
+
+    [Test]
+    public async Task RegenerateHealthAsync_Should_BumpUpdatedUtc_ForAffectedPlayers()
+    {
+        var userId = Guid.NewGuid();
+        await SeedUserAsync(userId);
+        await using var db = new AppDbContext(_dbOptions);
+        var sut = new GameDataRepository(db);
+        var data = await sut.GetOrCreateAsync(userId);
+        data.Health = 50;
+        await sut.SaveAsync();
+        var originalUpdatedUtc = data.UpdatedUtc;
+
+        await Task.Delay(10);
+        await sut.RegenerateHealthAsync(amount: 10, maxHealth: 100);
+
+        var reloaded = await db.UserGameData.AsNoTracking().SingleAsync(x => x.UserId == userId);
+        reloaded.UpdatedUtc.Should().BeAfter(originalUpdatedUtc);
+    }
 }

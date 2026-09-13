@@ -9,4 +9,11 @@ public interface IGameDataRepository
 
     /// <summary>Persists changes made to an entity returned by <see cref="GetOrCreateAsync"/>.</summary>
     Task SaveAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Restores <paramref name="amount"/> health to every player below
+    /// <paramref name="maxHealth"/>, capped at <paramref name="maxHealth"/>.
+    /// Returns the number of players affected.
+    /// </summary>
+    Task<int> RegenerateHealthAsync(int amount, int maxHealth, CancellationToken cancellationToken = default);
 }

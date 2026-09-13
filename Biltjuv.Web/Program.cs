@@ -28,11 +28,12 @@ builder.Services.AddMail(builder.Configuration);
 builder.Services.AddPasswordlessAuth(builder.Configuration);
 builder.Services.AddLoginRateLimiting();
 builder.Services.AddCrimes(builder.Configuration);
+builder.Services.AddHealthRegen(builder.Configuration);
 
 builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-builder.Services.AddScheduledJobs();
+builder.Services.AddScheduledJobs(builder.Configuration);
 
 var app = builder.Build();
 

@@ -8,6 +8,7 @@ using Quartz;
 using Serilog;
 using Biltjuv.Web.Infrastructure.Authentication;
 using Biltjuv.Web.Infrastructure.Crimes;
+using Biltjuv.Web.Infrastructure.Game;
 using Biltjuv.Web.Infrastructure.Mail;
 using Biltjuv.Web.Infrastructure.Persistence;
 using Biltjuv.Web.Infrastructure.Persistence.Repositories;
@@ -15,6 +16,7 @@ using Biltjuv.Web.Infrastructure.Timers;
 using Biltjuv.Web.Services;
 using Biltjuv.Web.Services.Authentication;
 using Biltjuv.Web.Services.Crimes;
+using Biltjuv.Web.Services.Game;
 
 namespace Biltjuv.Web.Extensions;
 
@@ -154,9 +156,22 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>Registers the Quartz.NET jobs (currently just the mail queue drain) and the hosted service that runs them.</summary>
-    public static IServiceCollection AddScheduledJobs(this IServiceCollection services)
+    /// <summary>Registers <see cref="HealthRegenOptions"/> and the service the regen timer drives.</summary>
+    public static IServiceCollection AddHealthRegen(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<HealthRegenOptions>(configuration.GetSection(HealthRegenOptions.SectionName));
+        services.AddScoped<IHealthRegenService, HealthRegenService>();
+        return services;
+    }
+
+    /// <summary>Registers the Quartz.NET jobs (mail queue drain, health regen) and the hosted service that runs them.</summary>
+    public static IServiceCollection AddScheduledJobs(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Quartz triggers are built once at startup, so the regen interval is
+        // read directly from config here rather than via IOptions<T>.
+        var healthRegenOptions = configuration.GetSection(HealthRegenOptions.SectionName).Get<HealthRegenOptions>()
+                                  ?? new HealthRegenOptions();
+
         services.AddQuartz(q =>
         {
             q.ScheduleJob<MailTimer>(trigger => trigger
@@ -164,6 +179,12 @@ public static class ServiceCollectionExtensions
                 .StartAt(DateTimeOffset.UtcNow.AddSeconds(15))
                 .WithSimpleSchedule(s => s.WithInterval(TimeSpan.FromMinutes(1)).RepeatForever())
                 .WithDescription("Drain the outbound email queue once a minute."));
+
+            q.ScheduleJob<HealthRegenTimer>(trigger => trigger
+                .WithIdentity("HealthRegenTimer-trigger")
+                .StartAt(DateTimeOffset.UtcNow.AddSeconds(30))
+                .WithSimpleSchedule(s => s.WithInterval(TimeSpan.FromMinutes(healthRegenOptions.IntervalMinutes)).RepeatForever())
+                .WithDescription($"Restore health to players below max, every {healthRegenOptions.IntervalMinutes} minute(s)."));
         });
 
         services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

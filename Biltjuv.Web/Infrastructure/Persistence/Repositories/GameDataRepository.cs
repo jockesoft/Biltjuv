@@ -29,4 +29,17 @@ public sealed class GameDataRepository(AppDbContext dbContext) : IGameDataReposi
 
     public Task SaveAsync(CancellationToken cancellationToken = default) =>
         dbContext.SaveChangesAsync(cancellationToken);
+
+    public Task<int> RegenerateHealthAsync(int amount, int maxHealth, CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+
+        return dbContext.UserGameData
+            .Where(x => x.Health < maxHealth)
+            .ExecuteUpdateAsync(
+                s => s
+                    .SetProperty(x => x.Health, x => x.Health + amount > maxHealth ? maxHealth : x.Health + amount)
+                    .SetProperty(x => x.UpdatedUtc, now),
+                cancellationToken);
+    }
 }
