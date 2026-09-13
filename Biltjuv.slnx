@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Biltjuv.Tests/Biltjuv.Tests.csproj" />
+  <Project Path="Biltjuv.Web/Biltjuv.Web.csproj" />
+</Solution>
