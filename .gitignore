@@ -1,0 +1,36 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+*DotSettings.user
+Biltjuv.Tests/TestResults/
+Biltjuv.Tests/coverage-report/
+
+# Environment specific files
+.env*
+
+
+# obj and bin
+Biltjuv.Web/bin/
+Biltjuv.Web/obj/
+Biltjuv.Tests/bin/
+Biltjuv.Tests/obj/
+
+# Appsettings files that may contain sensitive data
+# Biltjuv.Web/appsettings.Development.json
+# Biltjuv.Web/appsettings.json
+
+# Mail pickup folder (used in development)
+Biltjuv.Web/mail-pickup/
+
+.DS_Store
+
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
+# Jetbrains Rider cache/options directory
+.idea/
+
+#Log files created by the application
+Biltjuv.Web/Logs/
