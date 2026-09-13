@@ -1,3 +1,48 @@
+/* ==========================================================================
+   Biltjuv — dark underworld theme
+   Near-black void, parchment-warm text, antique gold as the one signal
+   color, crimson reserved for danger/urgency. Built as Bootstrap 5.3
+   CSS-variable overrides so every stock Bootstrap component (buttons,
+   forms, alerts, cards) picks the palette up for free.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bj-void: #0a0a0d;
+  --bj-ink: #111116;
+  --bj-surface: #17171d;
+  --bj-surface-raised: #1e1e26;
+  --bj-border: rgba(233, 230, 223, 0.09);
+  --bj-border-strong: rgba(233, 230, 223, 0.18);
+  --bj-text: #e9e6df;
+  --bj-text-muted: #948f84;
+  --bj-gold: #c8a24a;
+  --bj-gold-bright: #e0bc66;
+  --bj-gold-ink: #1c1305;
+  --bj-crimson: #8b1e2b;
+  --bj-crimson-bright: #c0293a;
+  --bj-focus: #7c8fd6;
+
+  --bj-font-display: 'Cinzel', Georgia, 'Times New Roman', serif;
+  --bj-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* Bootstrap overrides */
+  --bs-body-bg: var(--bj-void);
+  --bs-body-color: var(--bj-text);
+  --bs-body-font-family: var(--bj-font-body);
+  --bs-border-color: var(--bj-border);
+  --bs-secondary-color: var(--bj-text-muted);
+  --bs-primary: var(--bj-gold);
+  --bs-primary-rgb: 200, 162, 74;
+  --bs-link-color: var(--bj-gold-bright);
+  --bs-link-color-rgb: 224, 188, 102;
+  --bs-link-hover-color: #f0d38a;
+  --bs-link-hover-color-rgb: 240, 211, 138;
+  --bs-danger: var(--bj-crimson-bright);
+  --bs-emphasis-color: var(--bj-text);
+}
+
 html {
   font-size: 14px;
 }
@@ -8,10 +53,6 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
 html {
   position: relative;
   min-height: 100%;
@@ -19,6 +60,30 @@ html {
 
 body {
   margin-bottom: 60px;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(200, 162, 74, 0.06), transparent 60%),
+    radial-gradient(ellipse 120% 80% at 50% 110%, rgba(139, 30, 43, 0.05), transparent 60%),
+    var(--bj-void);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, h5, h6,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: var(--bj-font-display);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--bj-text);
+}
+
+.text-muted {
+  color: var(--bj-text-muted) !important;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Focus ring — gold, not the old Bootstrap-default blue                  */
+/* ---------------------------------------------------------------------- */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem var(--bj-void), 0 0 0 0.25rem var(--bj-focus);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +93,252 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Header / navbar                                                        */
+/* ---------------------------------------------------------------------- */
+.bj-header {
+  background: var(--bj-ink);
+  border-bottom: 1px solid var(--bj-border-strong);
+}
+
+.bj-brand {
+  font-family: var(--bj-font-display);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  font-size: 1.35rem;
+  color: var(--bj-text) !important;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.bj-brand::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bj-gold);
+  box-shadow: 0 0 8px rgba(200, 162, 74, 0.7);
+}
+
+.bj-tagline {
+  font-family: var(--bj-font-body);
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  font-size: 0.65rem;
+  color: var(--bj-gold);
+  text-transform: uppercase;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: var(--bj-text-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+  color: var(--bj-gold-bright);
+}
+
+.navbar-dark .navbar-toggler {
+  border-color: var(--bj-border-strong);
+}
+
+.bj-user-pill {
+  color: var(--bj-text);
+  font-weight: 600;
+}
+
+.bj-user-email {
+  color: var(--bj-text-muted);
+  font-size: 0.8rem;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Buttons                                                                */
+/* ---------------------------------------------------------------------- */
+.btn-primary {
+  --bs-btn-color: var(--bj-gold-ink);
+  --bs-btn-bg: var(--bj-gold);
+  --bs-btn-border-color: var(--bj-gold);
+  --bs-btn-hover-color: var(--bj-gold-ink);
+  --bs-btn-hover-bg: var(--bj-gold-bright);
+  --bs-btn-hover-border-color: var(--bj-gold-bright);
+  --bs-btn-active-color: var(--bj-gold-ink);
+  --bs-btn-active-bg: var(--bj-gold-bright);
+  --bs-btn-active-border-color: var(--bj-gold-bright);
+  --bs-btn-disabled-bg: var(--bj-gold);
+  --bs-btn-disabled-border-color: var(--bj-gold);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--bj-text-muted);
+  --bs-btn-border-color: var(--bj-border-strong);
+  --bs-btn-hover-color: var(--bj-text);
+  --bs-btn-hover-bg: var(--bj-surface-raised);
+  --bs-btn-hover-border-color: var(--bj-border-strong);
+}
+
+.btn-link {
+  color: var(--bj-gold-bright);
+}
+
+.btn-link:hover {
+  color: #f0d38a;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Surfaces: cards, forms, alerts                                         */
+/* ---------------------------------------------------------------------- */
+.card {
+  --bs-card-bg: var(--bj-surface);
+  --bs-card-border-color: var(--bj-border);
+  --bs-card-color: var(--bj-text);
+}
+
+.bj-panel {
+  background: var(--bj-surface);
+  border: 1px solid var(--bj-border);
+  border-radius: 10px;
+  padding: 2rem;
+}
+
+.form-control, .form-select {
+  background-color: var(--bj-surface-raised);
+  border-color: var(--bj-border-strong);
+  color: var(--bj-text);
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: var(--bj-surface-raised);
+  color: var(--bj-text);
+  border-color: var(--bj-gold);
+}
+
+.form-control::placeholder {
+  color: var(--bj-text-muted);
+  opacity: 0.7;
+}
+
+.form-label {
+  color: var(--bj-text);
+  font-weight: 500;
+}
+
+.alert-success {
+  --bs-alert-bg: rgba(200, 162, 74, 0.12);
+  --bs-alert-border-color: rgba(200, 162, 74, 0.35);
+  --bs-alert-color: var(--bj-gold-bright);
+}
+
+.alert-danger {
+  --bs-alert-bg: rgba(139, 30, 43, 0.15);
+  --bs-alert-border-color: rgba(192, 41, 58, 0.4);
+  --bs-alert-color: #e08a92;
+}
+
+.text-danger {
+  color: var(--bj-crimson-bright) !important;
+}
+
+code {
+  color: var(--bj-gold-bright);
+}
+
+hr {
+  border-color: var(--bj-border);
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Footer                                                                 */
+/* ---------------------------------------------------------------------- */
+.bj-footer {
+  background: var(--bj-ink);
+  border-top: 1px solid var(--bj-border-strong);
+  color: var(--bj-text-muted);
+  font-size: 0.85rem;
+}
+
+.bj-footer a {
+  color: var(--bj-text-muted);
+}
+
+.bj-footer a:hover {
+  color: var(--bj-gold-bright);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero (Index page)                                                      */
+/* ---------------------------------------------------------------------- */
+.bj-hero {
+  padding: 5rem 0 4rem;
+  text-align: center;
+  position: relative;
+}
+
+.bj-hero-tagline {
+  font-family: var(--bj-font-body);
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  font-size: 0.8rem;
+  color: var(--bj-gold);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.bj-hero h1 {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  margin-bottom: 1.25rem;
+}
+
+.bj-hero p.lead {
+  color: var(--bj-text-muted);
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1.1rem;
+}
+
+.bj-hero-actions {
+  margin-top: 2.25rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.bj-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 3.5rem;
+}
+
+.bj-feature {
+  background: var(--bj-surface);
+  border: 1px solid var(--bj-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.bj-feature h3 {
+  font-size: 1rem;
+  color: var(--bj-gold-bright);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.04em;
+}
+
+.bj-feature p {
+  color: var(--bj-text-muted);
+  font-size: 0.92rem;
+  margin: 0;
 }

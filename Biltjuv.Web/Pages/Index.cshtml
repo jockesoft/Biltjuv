@@ -1,10 +1,40 @@
-﻿@page
+@page
 @model IndexModel
+@inject Biltjuv.Web.Services.ICurrentUserService CurrentUser
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="bj-hero">
+    <div class="bj-hero-tagline">Råna &middot; Stjäl &middot; Härska</div>
+    <h1>The city sleeps.<br>You don't.</h1>
+    <p class="lead">
+        Biltjuv is a browser-based crime underworld — steal cars, run jobs, build a reputation
+        no one crosses twice, and pull your crew into a gang worth fearing.
+    </p>
+    <div class="bj-hero-actions">
+        @if (CurrentUser.IsAuthenticated)
+        {
+            <span class="btn btn-primary btn-lg disabled">Welcome back, @CurrentUser.DisplayName</span>
+        }
+        else
+        {
+            <a class="btn btn-primary btn-lg" asp-page="/Account/Login">Enter Biltjuv</a>
+        }
+    </div>
+
+    <div class="bj-feature-grid">
+        <div class="bj-feature">
+            <h3>No password to lose</h3>
+            <p>Sign in with a one-time link sent to your email. Nothing to remember, nothing to leak.</p>
+        </div>
+        <div class="bj-feature">
+            <h3>Build a reputation</h3>
+            <p>Every job pulled and every car sold moves you further from the bottom of the food chain.</p>
+        </div>
+        <div class="bj-feature">
+            <h3>Trust no one</h3>
+            <p>Gangs rise and fall on loyalty. Choose your crew carefully — or go it alone.</p>
+        </div>
+    </div>
 </div>

@@ -1,9 +1,41 @@
+using Biltjuv.Web.Extensions;
+using Biltjuv.Web.Infrastructure.Persistence;
+using Biltjuv.Web.Infrastructure.Persistence.Repositories;
+using Biltjuv.Web.Services;
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+});
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddCookieAuthentication();
+builder.Services.AddAuthorization();
+
+builder.Services.AddPostgres(builder.Configuration);
+
+builder.Services.AddMail(builder.Configuration);
+builder.Services.AddPasswordlessAuth(builder.Configuration);
+builder.Services.AddLoginRateLimiting();
+
+builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+builder.Services.AddScheduledJobs();
 
 var app = builder.Build();
+
+// Bring the database schema up to the current model before serving traffic.
+await app.MigrateDatabaseAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -17,6 +49,9 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+app.UseRateLimiter();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
