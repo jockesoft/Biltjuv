@@ -1,0 +1,111 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Recall CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore Biltjuv.sln
+
+      - name: Build (Release)
+        run: dotnet build Biltjuv.sln --configuration Release --no-restore
+
+      - name: Test with Coverage
+        run: dotnet test Biltjuv.sln --configuration Release --no-restore --settings Biltjuv.Tests/coverlet.runsettings --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+#      - name: Code Coverage Report
+#        uses: irongut/CodeCoverageSummary@v1.3.0
+#        with:
+#          filename: coverage/**/coverage.cobertura.xml
+#          badge: true
+#          fail_below_min: false
+#          format: markdown
+#          hide_branch_rate: false
+#          hide_complexity: true
+#          indicators: true
+#          output: both
+#          thresholds: '60 80'
+
+#      - name: Upload coverage summary
+#        uses: actions/upload-artifact@v7
+#        with:
+#          name: coverage-report
+#          path: code-coverage-results.md
+
+  build_and_deploy:
+    needs: build_and_test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set build number
+        run: echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+  
+      - name: Print new build number
+        run: echo "Build number is $BUILD_NUMBER"
+  
+#      - name: Write build number to file
+#        run: echo "$BUILD_NUMBER" > build.txt
+
+#      - name: Log in to GHCR
+#        uses: docker/login-action@v4
+#        with:
+#          registry: ghcr.io
+#          username: ${{ secrets.GHCR_USERNAME }}
+#          password: ${{ secrets.GHCR_TOKEN }}
+
+#      - name: Build and push Docker image
+#        uses: docker/build-push-action@v7
+#        with:
+#          context: .
+#          file: Dockerfile.prod
+#          push: true
+#          tags: |
+#            ghcr.io/${{ secrets.GHCR_USERNAME }}/biltjuv:latest
+#            ghcr.io/${{ secrets.GHCR_USERNAME }}/biltjuv:${{ env.BUILD_NUMBER }}
+
+#      - name: Deploy on remote server
+#        uses: appleboy/ssh-action@v1
+#        with:
+#          host: ${{ secrets.SSH_HOST }}
+#          username: ${{ secrets.SSH_USER }}
+#          key: ${{ secrets.SSH_PRIVATE_KEY }}
+#          script: |
+#            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
+#              -u "${{ secrets.GHCR_USERNAME }}" \
+#              --password-stdin
+#            cd /home/${{ secrets.SSH_USER }}/biltjuv-deploy
+#            bash dump_db.sh
+#            docker compose --env-file .env.prod -f compose.prod.yml up -d --pull always --quiet-pull
+#            docker image prune -f
