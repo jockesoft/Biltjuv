@@ -34,13 +34,13 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore Biltjuv.sln
+        run: dotnet restore Biltjuv.slnx
 
       - name: Build (Release)
-        run: dotnet build Biltjuv.sln --configuration Release --no-restore
+        run: dotnet build Biltjuv.slnx --configuration Release --no-restore
 
       - name: Test with Coverage
-        run: dotnet test Biltjuv.sln --configuration Release --no-restore --settings Biltjuv.Tests/coverlet.runsettings --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+        run: dotnet test Biltjuv.slnx --configuration Release --no-restore --settings Biltjuv.Tests/coverlet.runsettings --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
 #      - name: Code Coverage Report
 #        uses: irongut/CodeCoverageSummary@v1.3.0
