@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura,opencover</Format>
+          <OutputDirectory>TestResults</OutputDirectory>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+          
+          <!-- Exclude by file path -->
+          <ExcludeByFile>**/Migrations/*.cs,**/Migrations/**/*.cs,**/Program.cs</ExcludeByFile>
+          
+          <!-- Exclude auto-generated code -->
+          <ExcludeByAttribute>Obsolete</ExcludeByAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
