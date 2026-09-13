@@ -15,7 +15,7 @@
     <div class="bj-hero-actions">
         @if (CurrentUser.IsAuthenticated)
         {
-            <span class="btn btn-primary btn-lg disabled">Welcome back, @CurrentUser.DisplayName</span>
+            <a class="btn btn-primary btn-lg" asp-page="/Crimes/Steal">Welcome back, @CurrentUser.DisplayName — get to work</a>
         }
         else
         {

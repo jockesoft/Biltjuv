@@ -342,3 +342,48 @@ hr {
   font-size: 0.92rem;
   margin: 0;
 }
+
+/* ---------------------------------------------------------------------- */
+/* Stat tiles (game stats — money, respect, health, stolen cars, ...)     */
+/* ---------------------------------------------------------------------- */
+.bj-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.bj-stat {
+  background: var(--bj-surface);
+  border: 1px solid var(--bj-border);
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  text-align: center;
+}
+
+.bj-stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bj-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.bj-stat-value {
+  font-family: var(--bj-font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--bj-gold-bright);
+}
+
+.bj-stat-value.bj-stat-danger {
+  color: var(--bj-crimson-bright);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Crime page                                                             */
+/* ---------------------------------------------------------------------- */
+.bj-crime-header {
+  text-align: center;
+  margin: 2.5rem 0 1.5rem;
+}

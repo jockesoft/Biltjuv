@@ -7,12 +7,14 @@ using Npgsql;
 using Quartz;
 using Serilog;
 using Biltjuv.Web.Infrastructure.Authentication;
+using Biltjuv.Web.Infrastructure.Crimes;
 using Biltjuv.Web.Infrastructure.Mail;
 using Biltjuv.Web.Infrastructure.Persistence;
 using Biltjuv.Web.Infrastructure.Persistence.Repositories;
 using Biltjuv.Web.Infrastructure.Timers;
 using Biltjuv.Web.Services;
 using Biltjuv.Web.Services.Authentication;
+using Biltjuv.Web.Services.Crimes;
 
 namespace Biltjuv.Web.Extensions;
 
@@ -141,6 +143,14 @@ public static class ServiceCollectionExtensions
             };
         });
 
+        return services;
+    }
+
+    public static IServiceCollection AddCrimes(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<StealOptions>(configuration.GetSection(StealOptions.SectionName));
+        services.AddScoped<IGameDataRepository, GameDataRepository>();
+        services.AddScoped<IStealService, StealService>();
         return services;
     }
 

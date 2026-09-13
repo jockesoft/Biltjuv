@@ -27,6 +27,12 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
+                        @if (CurrentUser.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-page="/Crimes/Steal">Steal a Car</a>
+                            </li>
+                        }
                     </ul>
                     <ul class="navbar-nav align-items-sm-center">
                         @if (CurrentUser.IsAuthenticated)

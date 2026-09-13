@@ -14,4 +14,5 @@ public sealed class AppUserEntity
     public DateTime UpdatedUtc { get; set; }
 
     public ICollection<LoginTokenEntity> LoginTokens { get; set; } = new List<LoginTokenEntity>();
+    public UserGameDataEntity? GameData { get; set; }
 }

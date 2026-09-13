@@ -1,6 +1,7 @@
 using Biltjuv.Web.Extensions;
 using Biltjuv.Web.Infrastructure.Persistence;
 using Biltjuv.Web.Infrastructure.Persistence.Repositories;
+using Biltjuv.Web.Middleware;
 using Biltjuv.Web.Services;
 using Serilog;
 
@@ -26,6 +27,7 @@ builder.Services.AddPostgres(builder.Configuration);
 builder.Services.AddMail(builder.Configuration);
 builder.Services.AddPasswordlessAuth(builder.Configuration);
 builder.Services.AddLoginRateLimiting();
+builder.Services.AddCrimes(builder.Configuration);
 
 builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -52,6 +54,11 @@ app.UseRouting();
 app.UseRateLimiter();
 
 app.UseAuthentication();
+
+#if DEBUG
+app.UseMiddleware<DevAuthMiddleware>();
+#endif
+
 app.UseAuthorization();
 
 app.MapStaticAssets();

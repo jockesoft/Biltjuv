@@ -1,0 +1,67 @@
+@page
+@model StealModel
+@using Biltjuv.Web.Services.Crimes
+@{
+    ViewData["Title"] = "Steal a Car";
+}
+
+<div class="bj-crime-header">
+    <div class="bj-hero-tagline">Crimes</div>
+    <h1>Steal a Car</h1>
+    <p class="text-muted">Pick a target, pop the lock, and get gone before anyone notices.</p>
+</div>
+
+<div class="bj-stat-grid">
+    <div class="bj-stat">
+        <div class="bj-stat-label">Money</div>
+        <div class="bj-stat-value">$@Model.GameData.Money.ToString("N0")</div>
+    </div>
+    <div class="bj-stat">
+        <div class="bj-stat-label">Respect</div>
+        <div class="bj-stat-value">@Model.GameData.Respect.ToString("N0")</div>
+    </div>
+    <div class="bj-stat">
+        <div class="bj-stat-label">Health</div>
+        <div class="bj-stat-value @(Model.GameData.Health <= 30 ? "bj-stat-danger" : "")">@Model.GameData.Health / 100</div>
+    </div>
+    <div class="bj-stat">
+        <div class="bj-stat-label">Cars Stolen</div>
+        <div class="bj-stat-value">@Model.GameData.StolenCars.ToString("N0")</div>
+    </div>
+</div>
+
+@if (Model.LastAttempt is { } attempt)
+{
+    switch (attempt.Outcome)
+    {
+        case StealAttemptOutcome.Success:
+            <div class="alert alert-success" role="alert">
+                <strong>Clean job.</strong> You got away with the car — +$@attempt.MoneyGained.ToString("N0"), +@attempt.RespectGained respect.
+            </div>
+            break;
+        case StealAttemptOutcome.Busted:
+            <div class="alert alert-danger" role="alert">
+                <strong>Busted.</strong> The alarm went off before you could get clear — you took a beating getting away (-@attempt.HealthLost health).
+            </div>
+            break;
+        case StealAttemptOutcome.OnCooldown:
+            <div class="alert alert-danger" role="alert">
+                <strong>Too soon.</strong> Lay low a little longer before trying again.
+            </div>
+            break;
+    }
+}
+
+<div class="bj-panel text-center">
+    @if (Model.CooldownRemaining is { } remaining)
+    {
+        <p class="text-muted mb-3">You're lying low. Try again in <strong>@Math.Ceiling(remaining.TotalSeconds)</strong> seconds.</p>
+        <button type="button" class="btn btn-primary btn-lg disabled" disabled>Steal a Car</button>
+    }
+    else
+    {
+        <form method="post">
+            <button type="submit" class="btn btn-primary btn-lg">Steal a Car</button>
+        </form>
+    }
+</div>
