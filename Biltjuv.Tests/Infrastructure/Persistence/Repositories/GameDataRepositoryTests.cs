@@ -43,7 +43,7 @@ public sealed class GameDataRepositoryTests
     }
 
     [Test]
-    public async Task GetOrCreateAsync_Should_CreateRow_WithStartingHealth_AndZeroedStats()
+    public async Task GetOrCreateAsync_Should_CreateRow_WithStartingHealthAndMoney_AndZeroedOtherStats()
     {
         var userId = Guid.NewGuid();
         await SeedUserAsync(userId);
@@ -55,7 +55,7 @@ public sealed class GameDataRepositoryTests
 
         data.UserId.Should().Be(userId);
         data.Health.Should().Be(100);
-        data.Money.Should().Be(0);
+        data.Money.Should().Be(25000, "a new player must be able to afford the cheapest warehouse");
         data.Respect.Should().Be(0);
         data.StolenCars.Should().Be(0);
         data.NextStealUtc.Should().BeNull();

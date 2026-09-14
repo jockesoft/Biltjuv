@@ -19,6 +19,7 @@ using Biltjuv.Web.Services;
 using Biltjuv.Web.Services.Authentication;
 using Biltjuv.Web.Services.Crimes;
 using Biltjuv.Web.Services.Game;
+using Biltjuv.Web.Services.Shop;
 
 namespace Biltjuv.Web.Extensions;
 
@@ -199,6 +200,21 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<HealthRegenOptions>(configuration.GetSection(HealthRegenOptions.SectionName));
         services.AddScoped<IHealthRegenService, HealthRegenService>();
+        return services;
+    }
+
+    /// <summary>Registers <see cref="LevelOptions"/> and the respect-to-level calculator.</summary>
+    public static IServiceCollection AddLeveling(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<LevelOptions>(configuration.GetSection(LevelOptions.SectionName));
+        services.AddScoped<ILevelService, LevelService>();
+        return services;
+    }
+
+    /// <summary>Registers the warehouse purchase flow (Pages/Shop/Warehouse).</summary>
+    public static IServiceCollection AddShop(this IServiceCollection services)
+    {
+        services.AddScoped<IWarehouseService, WarehouseService>();
         return services;
     }
 

@@ -387,3 +387,49 @@ hr {
   text-align: center;
   margin: 2.5rem 0 1.5rem;
 }
+
+/* ---------------------------------------------------------------------- */
+/* Shop page                                                              */
+/* ---------------------------------------------------------------------- */
+.bj-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.bj-shop-card {
+  background: var(--bj-surface);
+  border: 1px solid var(--bj-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bj-shop-card-owned {
+  border-color: var(--bj-gold);
+}
+
+.bj-shop-card-title {
+  font-family: var(--bj-font-display);
+  font-size: 1.2rem;
+  color: var(--bj-gold-bright);
+}
+
+.bj-shop-card-specs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: var(--bj-text-muted);
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bj-shop-card-price {
+  font-family: var(--bj-font-display);
+  font-size: 1.4rem;
+  color: var(--bj-gold-bright);
+}

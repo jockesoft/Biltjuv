@@ -7,6 +7,10 @@ public sealed class GameDataRepository(AppDbContext dbContext) : IGameDataReposi
 {
     private const int StartingHealth = 100;
 
+    // Covers the price of the cheapest warehouse (see Config/warehouses.json) so every
+    // new player can buy storage for their first stolen car.
+    private const long StartingMoney = 25000;
+
     public async Task<UserGameDataEntity> GetOrCreateAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var existing = await dbContext.UserGameData
@@ -18,7 +22,8 @@ public sealed class GameDataRepository(AppDbContext dbContext) : IGameDataReposi
         var gameData = new UserGameDataEntity
         {
             UserId = userId,
-            Health = StartingHealth
+            Health = StartingHealth,
+            Money = StartingMoney
         };
 
         dbContext.UserGameData.Add(gameData);

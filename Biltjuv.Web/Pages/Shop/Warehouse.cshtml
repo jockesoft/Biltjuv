@@ -1,0 +1,123 @@
+@page
+@model WarehouseModel
+@using Biltjuv.Web.Services.Shop
+@{
+    ViewData["Title"] = "Warehouses";
+}
+
+<div class="bj-crime-header">
+    <div class="bj-hero-tagline">Shop</div>
+    <h1>Warehouses</h1>
+    <p class="text-muted">You need somewhere to stash a hot car before you can fence it. Buy a warehouse to get started.</p>
+</div>
+
+<div class="bj-stat-grid">
+    <div class="bj-stat">
+        <div class="bj-stat-label">Money</div>
+        <div class="bj-stat-value">$@Model.GameData.Money.ToString("N0")</div>
+    </div>
+    <div class="bj-stat">
+        <div class="bj-stat-label">Level</div>
+        <div class="bj-stat-value">@Model.Level</div>
+    </div>
+    <div class="bj-stat">
+        <div class="bj-stat-label">Respect</div>
+        <div class="bj-stat-value">@Model.GameData.Respect.ToString("N0")</div>
+    </div>
+    <div class="bj-stat">
+        <div class="bj-stat-label">Health</div>
+        <div class="bj-stat-value @(Model.GameData.Health <= 30 ? "bj-stat-danger" : "")">@Model.GameData.Health / 100</div>
+    </div>
+</div>
+
+@if (Model.LastResult is { } result)
+{
+    switch (result.Outcome)
+    {
+        case WarehousePurchaseOutcome.Success:
+            <div class="alert alert-success" role="alert">
+                <strong>Deal done.</strong> You now own <strong>@result.Warehouse!.Name</strong>.
+            </div>
+            break;
+        case WarehousePurchaseOutcome.AlreadyOwned:
+            <div class="alert alert-danger" role="alert">
+                <strong>Already got one.</strong> You can only own one warehouse for now.
+            </div>
+            break;
+        case WarehousePurchaseOutcome.Dead:
+            <div class="alert alert-danger" role="alert">
+                <strong>Too beat up.</strong> Patch yourself up before making a deal like this.
+            </div>
+            break;
+        case WarehousePurchaseOutcome.LevelTooLow:
+            <div class="alert alert-danger" role="alert">
+                <strong>Not enough clout.</strong> You need to be level @result.RequiredLevel (you're level @result.CurrentLevel).
+            </div>
+            break;
+        case WarehousePurchaseOutcome.InsufficientFunds:
+            <div class="alert alert-danger" role="alert">
+                <strong>Can't cover it.</strong> That costs $@result.RequiredMoney.ToString("N0") — you've got $@result.CurrentMoney.ToString("N0").
+            </div>
+            break;
+        case WarehousePurchaseOutcome.NotFound:
+            <div class="alert alert-danger" role="alert">
+                <strong>Not available.</strong> That warehouse doesn't exist anymore.
+            </div>
+            break;
+    }
+}
+else if (Model.IsDead)
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Too beat up.</strong> You're at 0 health — heal up before making a deal.
+    </div>
+}
+else if (Model.HasWarehouse)
+{
+    <div class="alert alert-success" role="alert">
+        You already own a warehouse. Multiple warehouses aren't supported yet.
+    </div>
+}
+
+<div class="bj-shop-grid">
+    @foreach (var row in Model.Warehouses)
+    {
+        <div class="bj-shop-card @(row.IsOwned ? "bj-shop-card-owned" : "")">
+            <div class="bj-shop-card-title">@row.Warehouse.Name</div>
+            <ul class="bj-shop-card-specs">
+                <li>Space: @row.Warehouse.Space cars</li>
+                <li>Min level: @row.Warehouse.MinLevel</li>
+                <li>Max steal: @row.Warehouse.MaxSteal car(s) per job</li>
+            </ul>
+            <div class="bj-shop-card-price">$@row.Warehouse.Price.ToString("N0")</div>
+
+            @if (row.IsOwned)
+            {
+                <button type="button" class="btn btn-outline-secondary disabled" disabled>Owned</button>
+            }
+            else if (Model.HasWarehouse)
+            {
+                <button type="button" class="btn btn-outline-secondary disabled" disabled>Already have a warehouse</button>
+            }
+            else if (Model.IsDead)
+            {
+                <button type="button" class="btn btn-outline-secondary disabled" disabled>Too beat up</button>
+            }
+            else if (!row.MeetsLevel)
+            {
+                <button type="button" class="btn btn-outline-secondary disabled" disabled>Requires level @row.Warehouse.MinLevel</button>
+            }
+            else if (!row.CanAfford)
+            {
+                <button type="button" class="btn btn-outline-secondary disabled" disabled>Not enough money</button>
+            }
+            else
+            {
+                <form method="post">
+                    <input type="hidden" name="warehouseId" value="@row.Warehouse.Id" />
+                    <button type="submit" class="btn btn-primary w-100">Buy</button>
+                </form>
+            }
+        </div>
+    }
+</div>

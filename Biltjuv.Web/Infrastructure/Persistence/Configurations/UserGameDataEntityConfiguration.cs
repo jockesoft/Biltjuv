@@ -21,7 +21,7 @@ public sealed class UserGameDataEntityConfiguration : IEntityTypeConfiguration<U
 
         builder.Property(x => x.Money)
             .HasColumnName("money")
-            .HasDefaultValue(0L)
+            .HasDefaultValue(25000L)
             .IsRequired();
 
         builder.Property(x => x.Respect)
