@@ -9,7 +9,13 @@ public enum StealAttemptOutcome
     Busted,
 
     /// <summary>Still cooling down from the last attempt; nothing happened.</summary>
-    OnCooldown
+    OnCooldown,
+
+    /// <summary>No warehouse owned — nowhere to stash a stolen car.</summary>
+    NoWarehouse,
+
+    /// <summary>Warehouse is at capacity — no room for another car.</summary>
+    WarehouseFull
 }
 
 public sealed record StealAttemptResult(
@@ -27,4 +33,10 @@ public sealed record StealAttemptResult(
 
     public static StealAttemptResult Busted(int healthLost) =>
         new(StealAttemptOutcome.Busted, 0, 0, healthLost, null);
+
+    public static StealAttemptResult NoWarehouse() =>
+        new(StealAttemptOutcome.NoWarehouse, 0, 0, 0, null);
+
+    public static StealAttemptResult WarehouseFull() =>
+        new(StealAttemptOutcome.WarehouseFull, 0, 0, 0, null);
 }

@@ -28,6 +28,10 @@
         <div class="bj-stat-label">Cars Stolen</div>
         <div class="bj-stat-value">@Model.GameData.StolenCars.ToString("N0")</div>
     </div>
+    <div class="bj-stat">
+        <div class="bj-stat-label">Storage</div>
+        <div class="bj-stat-value">@(Model.Warehouse is { } w ? $"{Model.GameData.StolenCars}/{w.Space}" : "—")</div>
+    </div>
 </div>
 
 @if (Model.LastAttempt is { } attempt)
@@ -49,11 +53,31 @@
                 <strong>Too soon.</strong> Lay low a little longer before trying again.
             </div>
             break;
+        case StealAttemptOutcome.NoWarehouse:
+            <div class="alert alert-danger" role="alert">
+                <strong>Nowhere to stash it.</strong> Buy a warehouse before you try that again.
+            </div>
+            break;
+        case StealAttemptOutcome.WarehouseFull:
+            <div class="alert alert-danger" role="alert">
+                <strong>Warehouse full.</strong> There's no room for another car right now.
+            </div>
+            break;
     }
 }
 
 <div class="bj-panel text-center">
-    @if (Model.CooldownRemaining is { } remaining)
+    @if (Model.Warehouse is null)
+    {
+        <p class="text-muted mb-3">You don't have anywhere to stash a stolen car. <a asp-page="/Shop/Warehouse">Buy a warehouse</a> first.</p>
+        <button type="button" class="btn btn-primary btn-lg disabled" disabled>Steal a Car</button>
+    }
+    else if (Model.GameData.StolenCars >= Model.Warehouse.Space)
+    {
+        <p class="text-muted mb-3">Your warehouse is full — no room for another car right now.</p>
+        <button type="button" class="btn btn-primary btn-lg disabled" disabled>Steal a Car</button>
+    }
+    else if (Model.CooldownRemaining is { } remaining)
     {
         <p class="text-muted mb-3">You're lying low. Try again in <strong>@Math.Ceiling(remaining.TotalSeconds)</strong> seconds.</p>
         <button type="button" class="btn btn-primary btn-lg disabled" disabled>Steal a Car</button>

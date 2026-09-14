@@ -2,11 +2,13 @@ using Microsoft.Extensions.Options;
 using Biltjuv.Web.Infrastructure.Crimes;
 using Biltjuv.Web.Infrastructure.Persistence.Entities;
 using Biltjuv.Web.Infrastructure.Persistence.Repositories;
+using Biltjuv.Web.Infrastructure.Warehouses;
 
 namespace Biltjuv.Web.Services.Crimes;
 
 public sealed class StealService(
     IGameDataRepository gameDataRepository,
+    IWarehouseCatalogService warehouseCatalogService,
     IOptions<StealOptions> options,
     ILogger<StealService> logger) : IStealService
 {
@@ -22,6 +24,23 @@ public sealed class StealService(
         var now = DateTime.UtcNow;
         if (gameData.NextStealUtc is { } nextAt && nextAt > now)
             return StealAttemptResult.Cooldown(nextAt - now);
+
+        // Stolen cars sit in the warehouse until fenced — no warehouse means nowhere
+        // to stash one, and a full one means no room for another.
+        if (gameData.WarehouseId is not { } warehouseId)
+            return StealAttemptResult.NoWarehouse();
+
+        var warehouse = await warehouseCatalogService.GetByIdAsync(warehouseId, cancellationToken);
+        if (warehouse is null)
+        {
+            logger.LogWarning(
+                "User {UserId} owns warehouse {WarehouseId}, which is not in the catalog; treating as no warehouse.",
+                userId, warehouseId);
+            return StealAttemptResult.NoWarehouse();
+        }
+
+        if (gameData.StolenCars >= warehouse.Space)
+            return StealAttemptResult.WarehouseFull();
 
         gameData.NextStealUtc = now.AddSeconds(_options.CooldownSeconds);
 

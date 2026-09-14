@@ -5,6 +5,7 @@ using Moq;
 using Biltjuv.Web.Infrastructure.Crimes;
 using Biltjuv.Web.Infrastructure.Persistence.Entities;
 using Biltjuv.Web.Infrastructure.Persistence.Repositories;
+using Biltjuv.Web.Infrastructure.Warehouses;
 using Biltjuv.Web.Services.Crimes;
 
 namespace Biltjuv.Tests.Services.Crimes;
@@ -12,13 +13,31 @@ namespace Biltjuv.Tests.Services.Crimes;
 [TestFixture]
 public sealed class StealServiceTests
 {
+    // Ample space so tests that aren't specifically about warehouse capacity
+    // never trip the full-warehouse check.
+    private static readonly Guid DefaultWarehouseId = Guid.NewGuid();
+    private static readonly WarehouseDefinition DefaultWarehouse = new()
+    {
+        Id = DefaultWarehouseId,
+        Name = "Koja",
+        Space = 100,
+        Price = 25000,
+        MinLevel = 1,
+        MaxSteal = 3,
+        CreatedUtc = new DateTime(2021, 2, 27, 11, 24, 8, DateTimeKind.Utc)
+    };
+
     private Mock<IGameDataRepository> _repository = null!;
+    private Mock<IWarehouseCatalogService> _catalog = null!;
     private StealOptions _options = null!;
 
     [SetUp]
     public void SetUp()
     {
         _repository = new Mock<IGameDataRepository>();
+        _catalog = new Mock<IWarehouseCatalogService>();
+        _catalog.Setup(x => x.GetByIdAsync(DefaultWarehouseId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DefaultWarehouse);
         _options = new StealOptions
         {
             CooldownSeconds = 30,
@@ -33,17 +52,31 @@ public sealed class StealServiceTests
 
     private StealService CreateSut() => new(
         _repository.Object,
+        _catalog.Object,
         Options.Create(_options),
         NullLogger<StealService>.Instance);
 
-    private static UserGameDataEntity GameData(Guid userId, int health = 100, DateTime? nextStealUtc = null) => new()
+    private static UserGameDataEntity GameData(
+        Guid userId, int health = 100, DateTime? nextStealUtc = null, int stolenCars = 0, Guid? warehouseId = null) => new()
     {
         UserId = userId,
         Health = health,
         Money = 0,
         Respect = 0,
-        StolenCars = 0,
-        NextStealUtc = nextStealUtc
+        StolenCars = stolenCars,
+        NextStealUtc = nextStealUtc,
+        WarehouseId = warehouseId ?? DefaultWarehouseId
+    };
+
+    private static WarehouseDefinition MakeWarehouse(int space) => new()
+    {
+        Id = DefaultWarehouseId,
+        Name = DefaultWarehouse.Name,
+        Space = space,
+        Price = DefaultWarehouse.Price,
+        MinLevel = DefaultWarehouse.MinLevel,
+        MaxSteal = DefaultWarehouse.MaxSteal,
+        CreatedUtc = DefaultWarehouse.CreatedUtc
     };
 
     [Test]
@@ -161,5 +194,71 @@ public sealed class StealServiceTests
         await CreateSut().AttemptStealAsync(userId);
 
         data.Health.Should().Be(0);
+    }
+
+    // ---- Warehouse gating ---------------------------------------------------
+
+    [Test]
+    public async Task AttemptStealAsync_Should_ReturnNoWarehouse_WhenPlayerOwnsNone()
+    {
+        var userId = Guid.NewGuid();
+        var data = GameData(userId);
+        data.WarehouseId = null;
+        _repository.Setup(x => x.GetOrCreateAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(data);
+
+        var result = await CreateSut().AttemptStealAsync(userId);
+
+        result.Outcome.Should().Be(StealAttemptOutcome.NoWarehouse);
+        data.NextStealUtc.Should().BeNull("a rejected attempt must not start a cooldown");
+        _repository.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AttemptStealAsync_Should_ReturnNoWarehouse_WhenOwnedWarehouseIsNotInCatalog()
+    {
+        var userId = Guid.NewGuid();
+        var unknownWarehouseId = Guid.NewGuid();
+        var data = GameData(userId, warehouseId: unknownWarehouseId);
+        _repository.Setup(x => x.GetOrCreateAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(data);
+        _catalog.Setup(x => x.GetByIdAsync(unknownWarehouseId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((WarehouseDefinition?)null);
+
+        var result = await CreateSut().AttemptStealAsync(userId);
+
+        result.Outcome.Should().Be(StealAttemptOutcome.NoWarehouse);
+        _repository.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AttemptStealAsync_Should_ReturnWarehouseFull_WhenStolenCarsReachesSpace()
+    {
+        var userId = Guid.NewGuid();
+        var warehouse = MakeWarehouse(space: 3);
+        var data = GameData(userId, stolenCars: 3);
+        _repository.Setup(x => x.GetOrCreateAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(data);
+        _catalog.Setup(x => x.GetByIdAsync(DefaultWarehouseId, It.IsAny<CancellationToken>())).ReturnsAsync(warehouse);
+
+        var result = await CreateSut().AttemptStealAsync(userId);
+
+        result.Outcome.Should().Be(StealAttemptOutcome.WarehouseFull);
+        data.StolenCars.Should().Be(3, "a rejected attempt must not change stats");
+        data.NextStealUtc.Should().BeNull("a rejected attempt must not start a cooldown");
+        _repository.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
+    public async Task AttemptStealAsync_Should_Allow_WhenWarehouseHasExactlyOneSpaceLeft()
+    {
+        var userId = Guid.NewGuid();
+        var warehouse = MakeWarehouse(space: 3);
+        var data = GameData(userId, stolenCars: 2);
+        _repository.Setup(x => x.GetOrCreateAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(data);
+        _catalog.Setup(x => x.GetByIdAsync(DefaultWarehouseId, It.IsAny<CancellationToken>())).ReturnsAsync(warehouse);
+
+        var result = await CreateSut().AttemptStealAsync(userId);
+
+        result.Outcome.Should().Be(StealAttemptOutcome.Success);
+        data.StolenCars.Should().Be(3);
+        _repository.Verify(x => x.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

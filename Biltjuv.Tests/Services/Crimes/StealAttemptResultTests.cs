@@ -43,4 +43,28 @@ public sealed class StealAttemptResultTests
         result.RespectGained.Should().Be(0);
         result.CooldownRemaining.Should().BeNull();
     }
+
+    [Test]
+    public void NoWarehouse_Should_SetOutcome_WithNoRewardsLossesOrCooldown()
+    {
+        var result = StealAttemptResult.NoWarehouse();
+
+        result.Outcome.Should().Be(StealAttemptOutcome.NoWarehouse);
+        result.MoneyGained.Should().Be(0);
+        result.RespectGained.Should().Be(0);
+        result.HealthLost.Should().Be(0);
+        result.CooldownRemaining.Should().BeNull();
+    }
+
+    [Test]
+    public void WarehouseFull_Should_SetOutcome_WithNoRewardsLossesOrCooldown()
+    {
+        var result = StealAttemptResult.WarehouseFull();
+
+        result.Outcome.Should().Be(StealAttemptOutcome.WarehouseFull);
+        result.MoneyGained.Should().Be(0);
+        result.RespectGained.Should().Be(0);
+        result.HealthLost.Should().Be(0);
+        result.CooldownRemaining.Should().BeNull();
+    }
 }
