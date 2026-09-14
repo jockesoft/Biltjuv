@@ -118,6 +118,32 @@ public sealed class GameDataRepositoryTests
         reloaded.Health.Should().Be(42);
     }
 
+    [Test]
+    public async Task SaveAsync_Should_PersistWarehouseId()
+    {
+        var userId = Guid.NewGuid();
+        var warehouseId = Guid.NewGuid();
+        await SeedUserAsync(userId);
+
+        await using (var db = new AppDbContext(_dbOptions))
+        {
+            var sut = new GameDataRepository(db);
+            var data = await sut.GetOrCreateAsync(userId);
+            data.WarehouseId.Should().BeNull("a player has no warehouse until they buy one");
+
+            data.WarehouseId = warehouseId;
+            await sut.SaveAsync();
+        }
+
+        await using (var db = new AppDbContext(_dbOptions))
+        {
+            var sut = new GameDataRepository(db);
+            var data = await sut.GetOrCreateAsync(userId);
+
+            data.WarehouseId.Should().Be(warehouseId);
+        }
+    }
+
     // ---- RegenerateHealthAsync ------------------------------------------------
 
     [Test]

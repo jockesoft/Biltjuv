@@ -1,0 +1,11 @@
+[
+  {
+    "Id": "b5af8537-190f-40be-bfd5-1460da13bbc1",
+    "Name": "Koja",
+    "Space": 10,
+    "Price": 25000,
+    "MinLevel": 1,
+    "MaxSteal": 3,
+    "CreatedUtc": "2021-02-27T11:24:08Z"
+  }
+]

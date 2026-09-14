@@ -7,12 +7,14 @@ using Npgsql;
 using Quartz;
 using Serilog;
 using Biltjuv.Web.Infrastructure.Authentication;
+using Biltjuv.Web.Infrastructure.Caching;
 using Biltjuv.Web.Infrastructure.Crimes;
 using Biltjuv.Web.Infrastructure.Game;
 using Biltjuv.Web.Infrastructure.Mail;
 using Biltjuv.Web.Infrastructure.Persistence;
 using Biltjuv.Web.Infrastructure.Persistence.Repositories;
 using Biltjuv.Web.Infrastructure.Timers;
+using Biltjuv.Web.Infrastructure.Warehouses;
 using Biltjuv.Web.Services;
 using Biltjuv.Web.Services.Authentication;
 using Biltjuv.Web.Services.Crimes;
@@ -80,6 +82,42 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<AppDbContext>(ConfigureAppDbContext, optionsLifetime: ServiceLifetime.Singleton);
         services.AddDbContextFactory<AppDbContext>(ConfigureAppDbContext);
 
+        return services;
+    }
+
+    /// <summary>
+    /// The distributed cache (<see cref="IDistributedCacheJson"/>) backed by Redis, used to
+    /// cache semi-static config data such as the warehouse catalog.
+    /// </summary>
+    public static IServiceCollection AddRedisCache(this IServiceCollection services, IConfiguration configuration)
+    {
+        // appsettings or env var: REDIS_CONNECTION=redis:6379
+        var redisConnection = configuration["REDIS_CONNECTION"]
+                               ?? configuration.GetConnectionString("RedisConnection");
+
+        if (string.IsNullOrWhiteSpace(redisConnection))
+        {
+            throw new InvalidOperationException(
+                "Redis connection string is not configured. Set the REDIS_CONNECTION environment " +
+                "variable or the ConnectionStrings:RedisConnection setting.");
+        }
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+            options.InstanceName = "biltjuv:";
+        });
+
+        services.AddSingleton<IDistributedCacheJson, DistributedCacheJson>();
+
+        return services;
+    }
+
+    /// <summary>Registers the warehouse catalog (JSON file, cached in Redis via <see cref="AddRedisCache"/>).</summary>
+    public static IServiceCollection AddWarehouses(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<WarehouseOptions>(configuration.GetSection(WarehouseOptions.SectionName));
+        services.AddScoped<IWarehouseCatalogService, WarehouseCatalogService>();
         return services;
     }
 

@@ -16,6 +16,13 @@ public sealed class UserGameDataEntity
     public int Health { get; set; }
     public int StolenCars { get; set; }
 
+    /// <summary>
+    /// The warehouse this player owns, referencing the Id of a
+    /// <see cref="Biltjuv.Web.Infrastructure.Warehouses.WarehouseDefinition"/> in the JSON catalog.
+    /// Null until they buy one; a warehouse is required to store stolen cars.
+    /// </summary>
+    public Guid? WarehouseId { get; set; }
+
     /// <summary>Earliest time the player may attempt another crime; null means "right now".</summary>
     public DateTime? NextStealUtc { get; set; }
 

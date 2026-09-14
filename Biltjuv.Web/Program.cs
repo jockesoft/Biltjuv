@@ -23,12 +23,14 @@ builder.Services.AddCookieAuthentication();
 builder.Services.AddAuthorization();
 
 builder.Services.AddPostgres(builder.Configuration);
+builder.Services.AddRedisCache(builder.Configuration);
 
 builder.Services.AddMail(builder.Configuration);
 builder.Services.AddPasswordlessAuth(builder.Configuration);
 builder.Services.AddLoginRateLimiting();
 builder.Services.AddCrimes(builder.Configuration);
 builder.Services.AddHealthRegen(builder.Configuration);
+builder.Services.AddWarehouses(builder.Configuration);
 
 builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();

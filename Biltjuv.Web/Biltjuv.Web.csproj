@@ -28,4 +28,8 @@
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Config\warehouses.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

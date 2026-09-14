@@ -39,6 +39,11 @@ public sealed class UserGameDataEntityConfiguration : IEntityTypeConfiguration<U
             .HasDefaultValue(0)
             .IsRequired();
 
+        // References WarehouseDefinition.Id from the JSON catalog, not a Postgres row —
+        // no foreign key constraint here.
+        builder.Property(x => x.WarehouseId)
+            .HasColumnName("warehouse_id");
+
         builder.Property(x => x.NextStealUtc)
             .HasColumnName("next_steal_utc")
             .HasColumnType("timestamp with time zone");
